@@ -8,5 +8,6 @@
     "dev": "esbuild src/main.js --bundle --format=cjs --platform=browser --target=es2020 --external:obsidian --sourcemap=inline --watch --outfile=main.js"
   },
   "author": "Miles Gurule",
+  "license": "MIT",
   "devDependencies": { "esbuild": "^0.24.0", "obsidian": "^1.7.2", "three": "^0.170.0" }
 }

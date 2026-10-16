@@ -27,3 +27,6 @@ npm run build
 ```
 
 Made by [Miles Gurule](https://github.com/milesgurule-png).
+
+## License
+MIT. See [LICENSE](LICENSE).
