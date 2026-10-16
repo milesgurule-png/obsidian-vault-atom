@@ -1,0 +1,13 @@
+.vault-atom-root { position: relative; padding: 0 !important; overflow: hidden; background: radial-gradient(ellipse at center, var(--background-secondary) 0%, var(--background-primary) 75%); }
+.vault-atom-canvas { position: absolute; inset: 0; }
+.vault-atom-hud { position: absolute; top: 12px; left: 14px; z-index: 2; pointer-events: none; }
+.vault-atom-title { font-weight: 700; font-size: 1.05em; }
+.vault-atom-stats { display: flex; gap: 14px; margin-top: 6px; }
+.vault-atom-stats b { display: block; font-size: 1.25em; }
+.vault-atom-stats span { color: var(--text-muted); font-size: .75em; text-transform: uppercase; letter-spacing: .05em; }
+.vault-atom-legend { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; }
+.vault-atom-chip { background: var(--background-secondary-alt); border: 1px solid var(--background-modifier-border); border-radius: 999px; padding: 3px 10px; font-size: .8em; cursor: pointer; user-select: none; }
+.vault-atom-chip.is-off { opacity: .35; }
+.vault-atom-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.vault-atom-tip { position: absolute; z-index: 3; display: none; pointer-events: none; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 8px; padding: 6px 10px; max-width: 280px; box-shadow: var(--shadow-s); }
+.vault-atom-tip small { display: block; color: var(--text-muted); }
