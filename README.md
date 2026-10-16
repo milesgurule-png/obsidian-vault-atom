@@ -2,7 +2,9 @@
 
 **See your whole vault as a 3D atom.** Your core notes glow at the nucleus, each folder orbits as its own shell, and every link between notes is drawn as a line through space.
 
-![Vault Atom](docs/screenshot.jpg)
+[![build](https://github.com/milesgurule-png/obsidian-vault-atom/actions/workflows/build.yml/badge.svg)](https://github.com/milesgurule-png/obsidian-vault-atom/actions/workflows/build.yml) ![release](https://img.shields.io/github/v/release/milesgurule-png/obsidian-vault-atom) ![license](https://img.shields.io/badge/license-MIT-green)
+
+![Vault Atom demo](docs/demo.gif)
 
 ## Features
 - **Nucleus:** your most-linked note, or any notes you choose, at the center
@@ -19,6 +21,9 @@
 2. Put them in `<your vault>/.obsidian/plugins/vault-atom/`.
 3. In Obsidian, go to **Settings → Community plugins**, turn off Restricted mode, and enable **Vault Atom**.
 4. Click the ⚛ ribbon icon or run **"Open Vault Atom"** from the command palette.
+
+## Contributing
+Ideas and bug reports are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Build
 ```

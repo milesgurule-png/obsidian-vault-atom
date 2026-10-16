@@ -1,0 +1,16 @@
+name: build
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npm run build
+      - name: Bundle loads
+        run: |
+          node -e "const M=require('module');const o=M._load;M._load=function(r,...a){if(r==='obsidian')return{Plugin:class{},ItemView:class{},PluginSettingTab:class{},Setting:class{},debounce:f=>f};return o.call(this,r,...a)};const m=require('./main.js');if(typeof(m.default||m)!=='function')process.exit(1);console.log('plugin class exported')"
+      - name: Manifest and versions agree
+        run: node -e "const m=require('./manifest.json'),p=require('./package.json');if(m.version!==p.version){console.error('manifest '+m.version+' != package '+p.version);process.exit(1)}console.log('version '+m.version)"
