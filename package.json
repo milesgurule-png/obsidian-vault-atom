@@ -1,9 +1,10 @@
 {
   "name": "obsidian-vault-atom",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "See your Obsidian vault as a 3D atom: folders orbit as shells around your core notes, links drawn between them.",
   "main": "main.js",
   "scripts": {
+    "test": "node --test test/search.test.mjs",
     "build": "esbuild src/main.js --bundle --format=cjs --platform=browser --target=es2020 --external:obsidian --minify --outfile=main.js",
     "dev": "esbuild src/main.js --bundle --format=cjs --platform=browser --target=es2020 --external:obsidian --sourcemap=inline --watch --outfile=main.js"
   },

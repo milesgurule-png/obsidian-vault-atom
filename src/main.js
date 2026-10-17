@@ -5,6 +5,7 @@
 import { Plugin, ItemView, PluginSettingTab, Setting, debounce } from 'obsidian';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { searchNotes } from './search.js';
 
 const VIEW_TYPE = 'vault-atom-view';
 const DEFAULTS = {
@@ -32,6 +33,8 @@ class AtomView extends ItemView {
     this.hud = root.createDiv({ cls: 'vault-atom-hud' });
     this.legend = root.createDiv({ cls: 'vault-atom-legend' });
     this.tip = root.createDiv({ cls: 'vault-atom-tip' });
+    this.focusTip = root.createDiv({ cls: 'vault-atom-tip vault-atom-focus-tip' });
+    this.buildSearch(root);
     this.canvasWrap = root.createDiv({ cls: 'vault-atom-canvas' });
     this.hidden = new Set();
     this.initThree();
@@ -72,8 +75,10 @@ class AtomView extends ItemView {
     // interaction
     this.ray = new THREE.Raycaster(); this.mouse = new THREE.Vector2(); this.hover = null;
     const dom = this.renderer.domElement; let down = null;
+    dom.tabIndex = 0; dom.style.outline = 'none'; // focusable, so '/' jumps to search
     dom.addEventListener('pointermove', e => this.onMove(e));
-    dom.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; this.controls.autoRotate = false; });
+    dom.addEventListener('pointerdown', e => { dom.focus(); down = [e.clientX, e.clientY]; this.controls.autoRotate = false; this.focus = null; this.focusTip.style.display = 'none'; });
+    dom.addEventListener('wheel', () => { if (this.focus) this.focus.zoomed = true; }, { passive: true });
     dom.addEventListener('pointerup', e => {
       if (down && Math.hypot(e.clientX - down[0], e.clientY - down[1]) < 5 && this.hover) {
         const n = this.nodes[this.hover.userData.i];
@@ -88,6 +93,7 @@ class AtomView extends ItemView {
       const spd = this.plugin.settings.orbitSpeed;
       (this.orbits || []).forEach((g, i) => g.rotateY(dt * (0.05 + 0.02 * (i % 3)) * spd));
       this.updateLinks();
+      this.updateFocus(dt, t);
       this.light.intensity = 50 + Math.sin(t * 2) * 10;
       this.controls.update(); this.renderer.render(this.scene, this.camera);
     };
@@ -152,7 +158,7 @@ class AtomView extends ItemView {
       const isNuc = n.shell === '__nucleus';
       const color = isNuc ? '#ffd166' : byName.get(n.shell).color;
       const m = new THREE.Mesh(sphere, new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: isNuc ? 1.4 : 0.7, roughness: 0.4 }));
-      const size = isNuc ? 0.9 : 0.14 + Math.min(0.5, Math.sqrt(n.deg) * 0.06); m.scale.setScalar(size); m.userData = { i, size };
+      const size = isNuc ? 0.9 : 0.14 + Math.min(0.5, Math.sqrt(n.deg) * 0.06); m.scale.setScalar(size); m.userData = { i, size, match: false };
       if (isNuc) { const k = (idx.__n = (idx.__n || 0) + 1); m.position.copy(new THREE.Vector3(hash(n.path) - .5, hash(n.path + 'y') - .5, hash(n.path + 'z') - .5).multiplyScalar(k === 1 ? 0 : 2)); this.scene.add(m); this.objects.push(m); }
       else {
         const s = byName.get(n.shell); const k = (idx[n.shell] = (idx[n.shell] || 0) + 1);
@@ -170,7 +176,82 @@ class AtomView extends ItemView {
     this.linkLine = new THREE.LineSegments(this.linkGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.2, depthWrite: false }));
     this.linkLine.visible = this.plugin.settings.showLinks; this.scene.add(this.linkLine); this.objects.push(this.linkLine);
     this.controls.autoRotate = this.plugin.settings.autoRotate; this.controls.autoRotateSpeed = 0.35;
+    this.counts = counts; this.focus = null; if (this.focusTip) this.focusTip.style.display = 'none';
     this.renderHud(nodes.length, links.length); this.renderLegend(counts); this.applyHidden();
+    if (this.searchInput) this.runSearch();
+  }
+
+  // ---- search: type to filter notes, Enter flies to the selected one (Cmd/Ctrl+Enter opens it)
+  buildSearch(root) {
+    const box = root.createDiv({ cls: 'vault-atom-search' });
+    this.searchInput = box.createEl('input', { type: 'search', placeholder: 'Search notes  ( / )', attr: { 'aria-label': 'Search notes', spellcheck: 'false' } });
+    this.searchList = box.createDiv({ cls: 'vault-atom-results' });
+    this.results = []; this.sel = 0;
+    this.searchInput.addEventListener('input', () => this.runSearch());
+    this.searchInput.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault(); if (!this.results.length) return;
+        this.sel = (this.sel + (e.key === 'ArrowDown' ? 1 : -1) + this.results.length) % this.results.length; this.renderResults();
+      } else if (e.key === 'Enter') {
+        e.preventDefault(); const r = this.results[this.sel]; if (!r) return;
+        if (e.metaKey || e.ctrlKey) this.app.workspace.openLinkText(this.nodes[r.i].path, '', true); else this.focusNode(r.i);
+      } else if (e.key === 'Escape') { this.searchInput.value = ''; this.runSearch(); this.searchInput.blur(); }
+    });
+    this.registerDomEvent(root, 'keydown', e => {
+      if (e.key === '/' && document.activeElement !== this.searchInput) { e.preventDefault(); this.searchInput.focus(); this.searchInput.select(); }
+    });
+  }
+
+  runSearch() {
+    const q = this.searchInput.value;
+    this.results = searchNotes(this.nodes || [], q, 8); this.sel = 0;
+    const hit = new Set(this.results.map(r => r.i));
+    (this.nodes || []).forEach((n, i) => { n.mesh.userData.match = hit.has(i); n.mesh.scale.setScalar(this.baseScale(n.mesh)); });
+    this.renderResults();
+  }
+
+  renderResults() {
+    this.searchList.empty();
+    const q = this.searchInput.value.trim();
+    if (!q) { this.searchList.style.display = 'none'; return; }
+    this.searchList.style.display = 'block';
+    if (!this.results.length) { this.searchList.createDiv({ cls: 'vault-atom-result is-empty', text: 'No matching notes' }); return; }
+    this.results.forEach((r, k) => {
+      const n = this.nodes[r.i];
+      const row = this.searchList.createDiv({ cls: 'vault-atom-result' + (k === this.sel ? ' is-selected' : '') });
+      row.createSpan({ cls: 'vault-atom-dot' }).style.background = '#' + n.mesh.material.color.getHexString();
+      row.createSpan({ cls: 'vault-atom-result-name', text: n.name });
+      row.createSpan({ cls: 'vault-atom-result-shell', text: n.shell === '__nucleus' ? 'Nucleus' : n.shell });
+      row.addEventListener('mousedown', e => { e.preventDefault(); this.sel = k; this.renderResults(); if (e.metaKey || e.ctrlKey) this.app.workspace.openLinkText(n.path, '', true); else this.focusNode(r.i); });
+    });
+  }
+
+  baseScale(m) { const u = m.userData; return u.size * (this.focus && this.focus.mesh === m ? 2.2 : u.match ? 1.7 : 1); }
+
+  /** Fly the camera to a note and keep it centered while its shell orbits. */
+  focusNode(i) {
+    const n = this.nodes[i]; if (!n) return;
+    if (this.hidden.has(n.shell)) { this.hidden.delete(n.shell); this.renderLegend(this.counts); this.applyHidden(); }
+    const prev = this.focus && this.focus.mesh; this.focus = { mesh: n.mesh, node: n, dist: Math.max(22, n.mesh.userData.size * 55) };
+    if (prev) prev.scale.setScalar(this.baseScale(prev));
+    this.controls.autoRotate = false;
+    this.focusTip.setText(''); this.focusTip.createEl('b', { text: n.name });
+    this.focusTip.createEl('small', { text: `${n.shell === '__nucleus' ? 'Nucleus' : n.shell} · ${n.deg} links · click to open` });
+    this.focusTip.onclick = e => this.app.workspace.openLinkText(n.path, '', e.metaKey || e.ctrlKey);
+  }
+
+  updateFocus(dt, t) {
+    const f = this.focus; if (!f) return;
+    const wp = f.mesh.getWorldPosition(this._fp || (this._fp = new THREE.Vector3()));
+    const k = 1 - Math.exp(-dt * 4);
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    if (!f.zoomed) offset.setLength(THREE.MathUtils.lerp(offset.length(), f.dist, k));
+    this.controls.target.lerp(wp, k);
+    this.camera.position.copy(this.controls.target).add(offset);
+    f.mesh.scale.setScalar(f.mesh.userData.size * (2.2 + 0.35 * Math.sin(t * 5)));
+    const p = wp.clone().project(this.camera), r = this.renderer.domElement;
+    if (p.z < 1) { this.focusTip.style.display = 'block'; this.focusTip.style.left = ((p.x + 1) / 2 * r.clientWidth + 16) + 'px'; this.focusTip.style.top = ((1 - p.y) / 2 * r.clientHeight - 12) + 'px'; }
+    else this.focusTip.style.display = 'none';
   }
 
   updateLinks() {
@@ -213,10 +294,10 @@ class AtomView extends ItemView {
     this.mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     this.ray.setFromCamera(this.mouse, this.camera);
     const hit = this.ray.intersectObjects(this.meshes.filter(m => m.visible))[0]?.object || null;
-    if (this.hover && this.hover !== hit) this.hover.scale.setScalar(this.hover.userData.size);
+    if (this.hover && this.hover !== hit && this.hover !== this.focus?.mesh) this.hover.scale.setScalar(this.baseScale(this.hover));
     this.hover = hit;
     if (hit) {
-      hit.scale.setScalar(hit.userData.size * 1.7);
+      if (hit !== this.focus?.mesh) hit.scale.setScalar(hit.userData.size * 1.9);
       const n = this.nodes[hit.userData.i];
       this.tip.setText(''); this.tip.createEl('b', { text: n.name }); this.tip.createEl('small', { text: `${n.shell === '__nucleus' ? 'Nucleus' : n.shell} · ${n.deg} links` });
       this.tip.style.display = 'block'; this.tip.style.left = (e.clientX - r.left + 14) + 'px'; this.tip.style.top = (e.clientY - r.top + 10) + 'px';

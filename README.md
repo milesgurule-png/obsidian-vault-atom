@@ -10,6 +10,7 @@
 - **Nucleus:** your most-linked note, or any notes you choose, at the center
 - **Shells:** folders become orbiting rings, sized by how many notes they hold. Automatic depth picks the clearest grouping, and tiny folders merge into "Other".
 - **Links:** every resolved `[[link]]` drawn in 3D and colored by shell
+- **Search:** press `/` or click the search box, type part of a note's name, and press Enter to fly to it. The camera follows the note as its shell orbits. Cmd/Ctrl+Enter opens it.
 - **Interact:** drag to rotate, scroll to zoom, hover for the note name and link count, click to open the note (Cmd/Ctrl-click for a new tab)
 - **Legend:** click a shell to hide or show it
 - **Live:** updates as you write, rename or delete notes
