@@ -9,5 +9,9 @@
   },
   "author": "Miles Gurule",
   "license": "MIT",
-  "devDependencies": { "esbuild": "^0.24.0", "obsidian": "^1.7.2", "three": "^0.170.0" }
+  "devDependencies": {
+    "esbuild": "^0.25.12",
+    "obsidian": "^1.7.2",
+    "three": "^0.170.0"
+  }
 }
