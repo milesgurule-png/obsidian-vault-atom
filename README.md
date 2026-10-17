@@ -16,11 +16,23 @@
 - **Settings:** nucleus notes, shell depth (auto/1/2/3), exclude folders, show links, auto-rotate, orbit speed, max notes
 - Uses your theme's colors and works in light or dark mode
 
-## Install (manual, until it's in the Community Plugins list)
-1. Download `main.js`, `manifest.json` and `styles.css` from the latest release.
+## Install
+Vault Atom is waiting for review for Obsidian's Community Plugins list. Until then, either:
+
+**Option A: BRAT (easiest, gets updates automatically)**
+1. Install **BRAT** from Settings → Community plugins → Browse.
+2. Run **"BRAT: Add a beta plugin for testing"** from the command palette.
+3. Paste `milesgurule-png/obsidian-vault-atom` and click **Add plugin**.
+4. Enable **Vault Atom** in Settings → Community plugins.
+
+**Option B: manual**
+1. Download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/milesgurule-png/obsidian-vault-atom/releases/latest).
 2. Put them in `<your vault>/.obsidian/plugins/vault-atom/`.
 3. In Obsidian, go to **Settings → Community plugins**, turn off Restricted mode, and enable **Vault Atom**.
-4. Click the ⚛ ribbon icon or run **"Open Vault Atom"** from the command palette.
+
+Then click the ⚛ ribbon icon or run **"Open Vault Atom"** from the command palette.
+
+**Like it?** A ⭐ on this repo helps other Obsidian users find it. Share a screenshot of your vault's atom in [Discussions](https://github.com/milesgurule-png/obsidian-vault-atom/discussions)!
 
 ## Contributing
 Ideas and bug reports are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
