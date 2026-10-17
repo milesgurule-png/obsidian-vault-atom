@@ -1,7 +1,7 @@
 {
   "id": "vault-atom",
   "name": "Vault Atom",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "minAppVersion": "1.4.0",
   "description": "See your vault as a 3D atom: folders orbit as shells around your core notes, with links drawn between them.",
   "author": "Miles Gurule",

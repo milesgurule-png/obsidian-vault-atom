@@ -11,3 +11,12 @@
 .vault-atom-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
 .vault-atom-tip { position: absolute; z-index: 3; display: none; pointer-events: none; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 8px; padding: 6px 10px; max-width: 280px; box-shadow: var(--shadow-s); }
 .vault-atom-tip small { display: block; color: var(--text-muted); }
+.vault-atom-search { position: absolute; top: 12px; right: 14px; z-index: 4; width: min(280px, calc(100% - 28px)); }
+.vault-atom-search input { width: 100%; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 8px; padding: 6px 10px; box-shadow: var(--shadow-s); }
+.vault-atom-results { display: none; margin-top: 4px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 8px; box-shadow: var(--shadow-s); overflow: hidden; max-height: 300px; overflow-y: auto; }
+.vault-atom-result { display: flex; align-items: center; gap: 2px; padding: 5px 10px; cursor: pointer; font-size: .85em; }
+.vault-atom-result:hover, .vault-atom-result.is-selected { background: var(--background-modifier-hover); }
+.vault-atom-result.is-empty { color: var(--text-muted); cursor: default; }
+.vault-atom-result-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vault-atom-result-shell { color: var(--text-muted); font-size: .85em; margin-left: 8px; white-space: nowrap; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
+.vault-atom-focus-tip { pointer-events: auto; cursor: pointer; border-color: var(--interactive-accent); }
